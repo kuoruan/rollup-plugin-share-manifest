@@ -37,6 +37,10 @@
     "types"
   ],
   "author": "Xingwang Liao <kuoruan@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kuoruan/rollup-plugin-share-manifest.git"
+  },
   "license": "MIT",
   "packageManager": "pnpm@10.13.0",
   "devDependencies": {
