@@ -1,8 +1,15 @@
 {
   "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
+    "module": "node16",
     "baseUrl": ".",
-    "verbatimModuleSyntax": true
+    "rootDir": "src",
+    "declaration": true,
+    "declarationDir": "dist",
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "types/**/*.d.ts"]
 }

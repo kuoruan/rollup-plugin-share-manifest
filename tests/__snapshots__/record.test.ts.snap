@@ -1,0 +1,51 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Plugin Chunks Record Tests > should handle imports correctly 1`] = `
+{
+  "main.js": {
+    "code": "import path from 'path';
+
+const foo = path.join("bar", "baz");
+
+export { foo };
+",
+    "dynamicImports": [],
+    "exports": [
+      "foo",
+    ],
+    "fileName": "main.js",
+    "format": "es",
+    "imports": [
+      {
+        "importName": "path",
+        "importType": "builtin",
+        "moduleName": "path",
+      },
+    ],
+    "isDynamicEntry": false,
+    "isEntry": true,
+    "name": "main",
+  },
+}
+`;
+
+exports[`Plugin Chunks Record Tests > should load plugin correctly 1`] = `
+{
+  "main.js": {
+    "code": "const foo = "bar";
+
+export { foo };
+",
+    "dynamicImports": [],
+    "exports": [
+      "foo",
+    ],
+    "fileName": "main.js",
+    "format": "es",
+    "imports": [],
+    "isDynamicEntry": false,
+    "isEntry": true,
+    "name": "main",
+  },
+}
+`;
