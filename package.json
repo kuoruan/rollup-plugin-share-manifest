@@ -18,9 +18,8 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:watch": "vitest --watch",
+    "test": "vitest run",
+    "test:watch": "vitest run --watch",
     "test:coverage": "vitest run --coverage",
     "test:update": "vitest run --update",
     "build": "rollup -c",
