@@ -7,6 +7,14 @@ import {
 } from "./constants.js";
 import type { ManifestOptions } from "./types.js";
 
+export function normalizeKey(key: unknown): string | symbol {
+  if (typeof key === "string" || typeof key === "symbol") {
+    return key;
+  }
+
+  return String(key);
+}
+
 export function isVirtualModuleId(id: string): boolean {
   return VirtualModuleIdRegex.test(id);
 }

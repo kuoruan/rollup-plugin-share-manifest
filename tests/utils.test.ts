@@ -8,10 +8,68 @@ import {
   isResolvedModulesId,
   isVirtualModuleId,
   isVirtualModulesId,
+  normalizeKey,
   removeQuery,
 } from "@/utils.js";
 
 describe("utils", () => {
+  describe("normalizeKey", () => {
+    it("should return string keys as-is", () => {
+      expect(normalizeKey("hello")).toBe("hello");
+      expect(normalizeKey("")).toBe("");
+      expect(normalizeKey("123")).toBe("123");
+      expect(normalizeKey("key-with-dashes")).toBe("key-with-dashes");
+      expect(normalizeKey("special@chars#")).toBe("special@chars#");
+    });
+
+    it("should return symbol keys as-is", () => {
+      const sym1 = Symbol("test");
+      const sym2 = Symbol.for("global");
+      const sym3 = Symbol();
+
+      expect(normalizeKey(sym1)).toBe(sym1);
+      expect(normalizeKey(sym2)).toBe(sym2);
+      expect(normalizeKey(sym3)).toBe(sym3);
+    });
+
+    it("should convert numbers to string", () => {
+      expect(normalizeKey(123)).toBe("123");
+      expect(normalizeKey(0)).toBe("0");
+      expect(normalizeKey(-456)).toBe("-456");
+      expect(normalizeKey(Math.PI)).toBe(Math.PI.toString());
+      expect(normalizeKey(Number.POSITIVE_INFINITY)).toBe("Infinity");
+      expect(normalizeKey(Number.NEGATIVE_INFINITY)).toBe("-Infinity");
+      expect(normalizeKey(Number.NaN)).toBe("NaN");
+    });
+
+    it("should convert booleans to string", () => {
+      expect(normalizeKey(true)).toBe("true");
+      expect(normalizeKey(false)).toBe("false");
+    });
+
+    it("should convert null and undefined to string", () => {
+      expect(normalizeKey(null)).toBe("null");
+      expect(normalizeKey(undefined)).toBe("undefined");
+    });
+
+    it("should convert bigint to string", () => {
+      expect(normalizeKey(123n)).toBe("123");
+      expect(normalizeKey(BigInt(456))).toBe("456");
+      expect(normalizeKey(0n)).toBe("0");
+    });
+
+    it("should handle edge cases", () => {
+      // Empty string is falsy but should remain as string
+      expect(normalizeKey("")).toBe("");
+
+      // Zero is falsy but should convert to "0"
+      expect(normalizeKey(0)).toBe("0");
+
+      // False is falsy but should convert to "false"
+      expect(normalizeKey(false)).toBe("false");
+    });
+  });
+
   describe("isVirtualModuleId", () => {
     it("should return true for VirtualModuleId", () => {
       expect(isVirtualModuleId("virtual:shared-manifest")).toBe(true);

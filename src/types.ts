@@ -57,11 +57,13 @@ export interface Manifest {
 }
 
 export interface Manifests {
-  [key: string]: Manifest;
+  [key: string | symbol]: Manifest;
 }
 
+export type RecordKey = string | number | boolean | symbol | bigint;
+
 export interface RecordOptions {
-  key?: string | number | boolean;
+  key?: RecordKey;
   withoutCode?: boolean;
 }
 
@@ -111,7 +113,7 @@ export interface SharedManifest {
    * const manifest = plugin.getManifest();
    * // Retrieves the entire manifest with key "0" (default behavior)
    */
-  getManifest(key?: string, type?: undefined): Manifest | null;
-  getManifest(key: string, type: "assets"): ManifestAssets | null;
-  getManifest(key: string, type: "chunks"): ManifestChunks | null;
+  getManifest(key?: RecordKey, type?: undefined): Manifest | null;
+  getManifest(key: RecordKey, type: "assets"): ManifestAssets | null;
+  getManifest(key: RecordKey, type: "chunks"): ManifestChunks | null;
 }

@@ -35,6 +35,7 @@ import {
   isResolvedModulesId,
   isVirtualModuleId,
   isVirtualModulesId,
+  normalizeKey,
   removeQuery,
 } from "./utils.js";
 
@@ -43,7 +44,7 @@ export default function shareManifest(): SharedManifest {
 
   let index: number = 0;
 
-  const keyAlias: Record<string, string> = Object.create(null);
+  const keyAlias: Record<string | symbol, string> = Object.create(null);
 
   const watchfile: string = temporaryFile();
 
@@ -62,11 +63,16 @@ export default function shareManifest(): SharedManifest {
 
       // If a custom key is provided, use it to alias the manifest
       if (options.key !== undefined && options.key !== null) {
-        const customKey = String(options.key);
+        const customKey = normalizeKey(options.key);
 
         if (customKey in keyAlias) {
+          const keyDescription =
+            typeof customKey === "symbol"
+              ? `[symbol] ${customKey.description}`
+              : customKey;
+
           throw new Error(
-            `[share-manifest] key "${customKey}" is already used, please use a different key.`,
+            `[share-manifest] key "${keyDescription}" is already used, please use a different key.`,
           );
         }
 
@@ -269,7 +275,7 @@ export default function shareManifest(): SharedManifest {
       return cloned;
     },
     getManifest(key, type): any {
-      const actualKey = String(key ?? "0");
+      const actualKey = normalizeKey(key ?? "0");
 
       const manifest = manifests[keyAlias[actualKey] || actualKey];
       if (!manifest) return null;
