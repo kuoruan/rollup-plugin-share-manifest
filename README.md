@@ -94,7 +94,7 @@ Creates a Rollup plugin that records manifest data during the build process.
 
 #### Options
 
-- `key?: string` - Custom key to identify this manifest
+- `key?: string` - Custom key to identify this manifest, by default, the key is a auto-incrementing number starting from `0`.
 - `withoutCode?: boolean` - Exclude chunk code from the manifest (default: `false`)
 
 ```javascript
