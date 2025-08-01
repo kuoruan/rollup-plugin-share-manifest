@@ -333,3 +333,7 @@ Add virtual module types to your TypeScript configuration:
 ```typescript
 /// <reference types="rollup-plugin-share-manifest/types" />
 ```
+
+## Inspired By
+
+This plugin is inspired by the `entryManifest` plugin from `unpkg` project, great thanks to the authors for their work.
