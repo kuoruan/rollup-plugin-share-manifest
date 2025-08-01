@@ -61,7 +61,7 @@ export interface Manifests {
 }
 
 export interface RecordOptions {
-  key?: string;
+  key?: string | number | boolean;
   withoutCode?: boolean;
 }
 

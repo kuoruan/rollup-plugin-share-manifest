@@ -209,6 +209,11 @@ describe("shareManifest plugin integration tests", () => {
 
       const manifests = sharedManifest.getManifests();
       expect(Object.keys(manifests)).toHaveLength(2);
+      // Should contain custom keys, not internal keys
+      expect(manifests).toHaveProperty("first");
+      expect(manifests).toHaveProperty("second");
+      expect(manifests).not.toHaveProperty("0");
+      expect(manifests).not.toHaveProperty("1");
     });
 
     it("should retrieve specific manifest by key", async () => {
@@ -294,6 +299,131 @@ describe("shareManifest plugin integration tests", () => {
 
       const result = sharedManifest.getManifest("non-existent", "chunks");
       expect(result).toBeNull();
+    });
+
+    it("should return deep cloned manifest objects", async () => {
+      const sharedManifest = shareManifest();
+
+      const vol = Volume.fromJSON({
+        "/record.js": `export const foo = "bar";`,
+      });
+
+      const recordBundle = await rollup({
+        input: "/record.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record({ key: "test-key" })],
+      });
+      await recordBundle.generate({ format: "es" });
+
+      const manifest1 = sharedManifest.getManifest("test-key");
+      const manifest2 = sharedManifest.getManifest("test-key");
+
+      // Should be different objects (deep cloned)
+      expect(manifest1).not.toBe(manifest2);
+      // But with same content
+      expect(manifest1).toEqual(manifest2);
+
+      // Modifying one should not affect the other
+      if (manifest1) {
+        manifest1.chunks = {};
+        expect(manifest2?.chunks).not.toEqual({});
+      }
+    });
+
+    it("should return deep cloned manifests from getManifests", async () => {
+      const sharedManifest = shareManifest();
+
+      const vol = Volume.fromJSON({
+        "/record.js": `export const foo = "bar";`,
+      });
+
+      const recordBundle = await rollup({
+        input: "/record.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record({ key: "test-key" })],
+      });
+      await recordBundle.generate({ format: "es" });
+
+      const manifests1 = sharedManifest.getManifests();
+      const manifests2 = sharedManifest.getManifests();
+
+      // Should be different objects (deep cloned)
+      expect(manifests1).not.toBe(manifests2);
+      // But with same content
+      expect(manifests1).toEqual(manifests2);
+
+      // Modifying one should not affect the other
+      manifests1["test-key"].chunks = {};
+      expect(manifests2["test-key"].chunks).not.toEqual({});
+    });
+
+    it("should handle mixed custom keys and auto-generated keys in getManifests", async () => {
+      const sharedManifest = shareManifest();
+
+      const vol = Volume.fromJSON({
+        "/record1.js": `export const foo = "bar";`,
+        "/record2.js": `export const baz = "qux";`,
+        "/record3.js": `export const test = "value";`,
+      });
+
+      // Record with custom key
+      const recordBundle1 = await rollup({
+        input: "/record1.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record({ key: "custom" })],
+      });
+      await recordBundle1.generate({ format: "es" });
+
+      // Record without custom key (auto-generated)
+      const recordBundle2 = await rollup({
+        input: "/record2.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record()],
+      });
+      await recordBundle2.generate({ format: "es" });
+
+      // Record with another custom key
+      const recordBundle3 = await rollup({
+        input: "/record3.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record({ key: "another" })],
+      });
+      await recordBundle3.generate({ format: "es" });
+
+      const manifests = sharedManifest.getManifests();
+
+      // Should contain custom keys and auto-generated key
+      expect(Object.keys(manifests)).toHaveLength(3);
+      expect(manifests).toHaveProperty("custom");
+      expect(manifests).toHaveProperty("another");
+      expect(manifests).toHaveProperty("1"); // auto-generated key for second record
+
+      // Should not contain internal keys that have custom aliases
+      expect(manifests).not.toHaveProperty("0"); // has custom key "custom"
+      expect(manifests).not.toHaveProperty("2"); // has custom key "another"
+    });
+
+    it("should handle edge case when custom key equals manifest key", async () => {
+      const sharedManifest = shareManifest();
+
+      const vol = Volume.fromJSON({
+        "/record.js": `export const foo = "bar";`,
+      });
+
+      // Use "0" as custom key, which would equal the auto-generated key
+      const recordBundle = await rollup({
+        input: "/record.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record({ key: "0" })],
+      });
+      await recordBundle.generate({ format: "es" });
+
+      const manifests = sharedManifest.getManifests();
+      expect(Object.keys(manifests)).toHaveLength(1);
+      expect(manifests).toHaveProperty("0");
+
+      const manifest = sharedManifest.getManifest("0");
+      expect(manifest).toBeTruthy();
     });
   });
 
@@ -676,6 +806,53 @@ describe("shareManifest plugin integration tests", () => {
         sharedManifest.record({ key: "same-key" });
       }).toThrow(
         '[share-manifest] key "same-key" is already used, please use a different key.',
+      );
+    });
+
+    it("should handle non-string keys by converting to string", async () => {
+      const sharedManifest = shareManifest();
+
+      const vol = Volume.fromJSON({
+        "/record1.js": `export const foo = "bar";`,
+        "/record2.js": `export const baz = "qux";`,
+      });
+
+      // Test with number key (casting to unknown first to bypass TypeScript)
+      const recordBundle1 = await rollup({
+        input: "/record1.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record({ key: 123 })],
+      });
+      await recordBundle1.generate({ format: "es" });
+
+      // Test with boolean key
+      const recordBundle2 = await rollup({
+        input: "/record2.js",
+        fs: vol.promises as RollupFsModule,
+        plugins: [sharedManifest.record({ key: true })],
+      });
+      await recordBundle2.generate({ format: "es" });
+
+      const manifests = sharedManifest.getManifests();
+      expect(manifests).toHaveProperty("123");
+      expect(manifests).toHaveProperty("true");
+
+      const manifest1 = sharedManifest.getManifest("123");
+      const manifest2 = sharedManifest.getManifest("true");
+      expect(manifest1).toBeTruthy();
+      expect(manifest2).toBeTruthy();
+    });
+
+    it("should throw error when converted keys are duplicate", async () => {
+      const sharedManifest = shareManifest();
+
+      sharedManifest.record({ key: 123 });
+
+      // Second record with string version of same key should throw error
+      expect(() => {
+        sharedManifest.record({ key: "123" });
+      }).toThrow(
+        '[share-manifest] key "123" is already used, please use a different key.',
       );
     });
 

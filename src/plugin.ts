@@ -69,7 +69,10 @@ export default function shareManifest(): SharedManifest {
             `[share-manifest] key "${customKey}" is already used, please use a different key.`,
           );
         }
-        keyAlias[customKey] = manifestKey;
+
+        if (customKey !== manifestKey) {
+          keyAlias[customKey] = manifestKey;
+        }
       }
 
       const manifest: Manifest = {
@@ -253,7 +256,17 @@ export default function shareManifest(): SharedManifest {
       };
     },
     getManifests(): Manifests {
-      return manifests;
+      const cloned = structuredClone(manifests);
+
+      // Apply key aliasing to the cloned manifests
+      // Remove the original keys and replace them with the custom keys
+      for (const [customKey, manifestKey] of Object.entries(keyAlias)) {
+        cloned[customKey] = cloned[manifestKey];
+
+        delete cloned[manifestKey];
+      }
+
+      return cloned;
     },
     getManifest(key, type): any {
       const actualKey = String(key ?? "0");
@@ -261,9 +274,11 @@ export default function shareManifest(): SharedManifest {
       const manifest = manifests[keyAlias[actualKey] || actualKey];
       if (!manifest) return null;
 
-      if (!type) return manifest;
+      const cloned = structuredClone(manifest);
 
-      return manifest[type] ?? null;
+      if (!type) return cloned;
+
+      return cloned[type] ?? null;
     },
   };
 }
