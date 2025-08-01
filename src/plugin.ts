@@ -57,7 +57,7 @@ export default function shareManifest(): SharedManifest {
   };
 
   return {
-    record(options: RecordOptions = {}): Plugin {
+    record: (options: RecordOptions = {}): Plugin => {
       // Generate a unique manifest key for each record call
       const manifestKey = (index++).toString();
 
@@ -219,7 +219,7 @@ export default function shareManifest(): SharedManifest {
         },
       };
     },
-    provide(_options: ProvideOptions = {}): Plugin {
+    provide: (_options: ProvideOptions = {}): Plugin => {
       return {
         name: "share-manifest:provide",
         resolveId(id: string) {
@@ -261,7 +261,7 @@ export default function shareManifest(): SharedManifest {
         },
       };
     },
-    getManifests(): Manifests {
+    getManifests: (): Manifests => {
       const cloned = structuredClone(manifests);
 
       // Apply key aliasing to the cloned manifests
@@ -274,7 +274,7 @@ export default function shareManifest(): SharedManifest {
 
       return cloned;
     },
-    getManifest(key, type): any {
+    getManifest: (key, type): any => {
       const actualKey = normalizeKey(key ?? "0");
 
       const manifest = manifests[keyAlias[actualKey] || actualKey];

@@ -79,12 +79,12 @@ export interface SharedManifest {
    * A Rollup plugin that populates the entry manifest. This should be
    * used in the client bundle where the code-splitting is taking place.
    */
-  record(options?: RecordOptions): Plugin;
+  record(this: void, options?: RecordOptions): Plugin;
   /**
    * A Rollup plugin that provides the current entry manifest via a
    * virtual module id.
    */
-  provide(options?: ProvideOptions): Plugin;
+  provide(this: void, options?: ProvideOptions): Plugin;
 
   /**
    * Retrieves all manifests recorded by the plugin.
@@ -93,7 +93,7 @@ export interface SharedManifest {
    * const manifests = plugin.getManifests();
    * // Retrieves all recorded manifests
    */
-  getManifests(): Manifests;
+  getManifests(this: void): Manifests;
 
   /**
    * Retrieves a manifest by its key and type.
@@ -113,7 +113,15 @@ export interface SharedManifest {
    * const manifest = plugin.getManifest();
    * // Retrieves the entire manifest with key "0" (default behavior)
    */
-  getManifest(key?: RecordKey, type?: undefined): Manifest | null;
-  getManifest(key: RecordKey, type: "assets"): ManifestAssets | null;
-  getManifest(key: RecordKey, type: "chunks"): ManifestChunks | null;
+  getManifest(this: void, key?: RecordKey, type?: undefined): Manifest | null;
+  getManifest(
+    this: void,
+    key: RecordKey,
+    type: "assets",
+  ): ManifestAssets | null;
+  getManifest(
+    this: void,
+    key: RecordKey,
+    type: "chunks",
+  ): ManifestChunks | null;
 }
