@@ -577,7 +577,7 @@ describe("shareManifest plugin integration tests", () => {
       expect(output[0].code).toContain("record2.js");
     });
 
-    it("should return null for non-existent key in virtual:shared-manifests", async () => {
+    it("should throw error for non-existent key in virtual:shared-manifests", async () => {
       const sharedManifest = shareManifest();
 
       const vol = Volume.fromJSON({
@@ -587,18 +587,13 @@ describe("shareManifest plugin integration tests", () => {
         `,
       });
 
-      const provideBundle = await rollup({
+      const provideBundle = rollup({
         input: "/provide.js",
         fs: vol.promises as RollupFsModule,
         plugins: [sharedManifest.provide()],
       });
 
-      const { output } = await provideBundle.generate({
-        format: "es",
-      });
-
-      expect(output).toHaveLength(1);
-      expect(output[0].code).toContain("null");
+      await expect(provideBundle).rejects.toThrow();
     });
 
     it("should handle numeric keys in virtual:shared-manifests", async () => {

@@ -56,6 +56,33 @@ export default function shareManifest(): SharedManifest {
     }
   };
 
+  const getManifests: SharedManifest["getManifests"] = () => {
+    const cloned = structuredClone(manifests);
+
+    // Apply key aliasing to the cloned manifests
+    // Remove the original keys and replace them with the custom keys
+    for (const [customKey, manifestKey] of Object.entries(keyAlias)) {
+      cloned[customKey] = cloned[manifestKey];
+
+      delete cloned[manifestKey];
+    }
+
+    return cloned;
+  };
+
+  const getManifest: SharedManifest["getManifest"] = (key, type): any => {
+    const actualKey = normalizeKey(key ?? "0");
+
+    const manifest = manifests[keyAlias[actualKey] || actualKey];
+    if (!manifest) return null;
+
+    const cloned = structuredClone(manifest);
+
+    if (!type) return cloned;
+
+    return cloned[type] ?? null;
+  };
+
   return {
     record: (options: RecordOptions = {}): Plugin => {
       // Generate a unique manifest key for each record call
@@ -243,16 +270,14 @@ export default function shareManifest(): SharedManifest {
             return `export default ${JSON.stringify(manifests)};`;
           }
 
-          const manifest = manifests[keyAlias[opts.key] || opts.key];
+          const manifest = getManifest(opts.key, opts.type as any);
           if (!manifest) {
-            return `export default null;`;
+            // If the manifest is not found, we return null, so that Rollup
+            // will throw an error.
+            return null;
           }
 
-          if (!opts.type) {
-            return `export default ${JSON.stringify(manifest)};`;
-          }
-
-          return `export default ${JSON.stringify(manifest[opts.type])};`;
+          return `export default ${JSON.stringify(manifest)};`;
         },
         transform(this: TransformPluginContext, _code: string, id: string) {
           if (isResolvedModulesId(id)) {
@@ -261,30 +286,7 @@ export default function shareManifest(): SharedManifest {
         },
       };
     },
-    getManifests: (): Manifests => {
-      const cloned = structuredClone(manifests);
-
-      // Apply key aliasing to the cloned manifests
-      // Remove the original keys and replace them with the custom keys
-      for (const [customKey, manifestKey] of Object.entries(keyAlias)) {
-        cloned[customKey] = cloned[manifestKey];
-
-        delete cloned[manifestKey];
-      }
-
-      return cloned;
-    },
-    getManifest: (key, type): any => {
-      const actualKey = normalizeKey(key ?? "0");
-
-      const manifest = manifests[keyAlias[actualKey] || actualKey];
-      if (!manifest) return null;
-
-      const cloned = structuredClone(manifest);
-
-      if (!type) return cloned;
-
-      return cloned[type] ?? null;
-    },
+    getManifests: getManifests,
+    getManifest: getManifest,
   };
 }

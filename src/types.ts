@@ -67,11 +67,13 @@ export interface RecordOptions {
   withoutCode?: boolean;
 }
 
+export type ManifestTypes = keyof Manifest;
+
 export type ProvideOptions = Record<never, never>;
 
 export type ManifestOptions = {
   key?: string;
-  type?: keyof Manifest;
+  type?: ManifestTypes;
 };
 
 export interface SharedManifest {
@@ -113,15 +115,19 @@ export interface SharedManifest {
    * const manifest = plugin.getManifest();
    * // Retrieves the entire manifest with key "0" (default behavior)
    */
-  getManifest(this: void, key?: RecordKey, type?: undefined): Manifest | null;
+  getManifest(
+    this: void,
+    key?: RecordKey,
+    type?: Exclude<ManifestTypes, "assets" | "chunks">,
+  ): Manifest | null;
   getManifest(
     this: void,
     key: RecordKey,
-    type: "assets",
+    type: Exclude<ManifestTypes, "chunks">,
   ): ManifestAssets | null;
   getManifest(
     this: void,
     key: RecordKey,
-    type: "chunks",
+    type: Exclude<ManifestTypes, "assets">,
   ): ManifestChunks | null;
 }
