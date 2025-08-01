@@ -11,8 +11,12 @@ describe("shareManifest", () => {
     expect(plugin).toBeTypeOf("object");
     expect(plugin).toHaveProperty("record");
     expect(plugin).toHaveProperty("provide");
+    expect(plugin).toHaveProperty("getManifests");
+    expect(plugin).toHaveProperty("getManifest");
     expect(typeof plugin.record).toBe("function");
     expect(typeof plugin.provide).toBe("function");
+    expect(typeof plugin.getManifests).toBe("function");
+    expect(typeof plugin.getManifest).toBe("function");
   });
 
   it("record method should return a rollup plugin", () => {
@@ -33,5 +37,8 @@ describe("shareManifest", () => {
     expect(providePlugin).toBeTypeOf("object");
     expect(providePlugin).toHaveProperty("name");
     expect(providePlugin.name).toBe("share-manifest:provide");
+    expect(providePlugin).toHaveProperty("resolveId");
+    expect(providePlugin).toHaveProperty("load");
+    expect(providePlugin).toHaveProperty("transform");
   });
 });
